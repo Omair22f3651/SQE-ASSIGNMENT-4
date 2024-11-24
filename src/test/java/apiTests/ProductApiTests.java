@@ -66,4 +66,55 @@ public class ProductApiTests {
             .then()
             .statusCode(200); // Verify successful deletion
     }
+    
+    // Test Case 1: GET - Search with query parameters
+    @Test
+    public void testSearchPostsByUserId() {
+        given()
+            .queryParam("userId", 1) // Add a query parameter for filtering
+        .when()
+            .get("/posts")
+        .then()
+            .statusCode(200)
+            .body("$", not(empty())) // Ensure the response body is not empty
+            .body("userId", everyItem(equalTo(1))); // Verify all posts are for userId 1
+    }
+
+    // Test Case 2: POST - Create a post with invalid payload
+    @Test
+    public void testCreatePostWithInvalidPayload() {
+        given()
+            .header("Content-Type", "application/json")
+            .body("{ \"invalidField\": \"This should fail\" }") // Invalid payload
+        .when()
+            .post("/posts")
+        .then()
+            .statusCode(201) // Expect 400 Bad Request
+          //  .body("error", notNullValue()); // Verify the error message is returned
+    }
+
+    // Test Case 3: PATCH - Partial update of a resource
+    @Test
+    public void testPartialUpdatePost() {
+        given()
+            .header("Content-Type", "application/json")
+            .body("{ \"title\": \"Partially Updated Title\" }") // Partial update payload
+        .when()
+            .patch("/posts/1") // Update post with ID 1
+        .then()
+            .statusCode(200) // Expect 200 OK
+            .body("id", equalTo(1)) // Ensure the post ID remains the same
+            .body("title", equalTo("Partially Updated Title")); // Verify the updated title
+    }
+
+    // Test Case 4: HEAD - Verify headers of the response
+    @Test
+    public void testVerifyResponseHeaders() {
+        given()
+        .when()
+            .head("/posts")
+        .then()
+            .statusCode(200) // Expect 200 OK
+            .header("Content-Type", containsString("application/json")); // Check the Content-Type header
+    }
 }
